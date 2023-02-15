@@ -1,66 +1,52 @@
-﻿//credits: ChatGPT, thanks for the code
-int result = 0;
-
-Console.WriteLine("Enter a formula: ");
+﻿Console.Write("Please enter a formula: ");
 string formula = Console.ReadLine()!;
-formula = formula.Replace(" ", string.Empty);
+int result = Evaluate(formula);
+Console.WriteLine($"The result is {result}");
 
-if (formula == string.Empty)
-{
-    result = 0;
-}
-else if (IsNumeric(formula))
-{
-    result = int.Parse(formula);
-}
-else
-{
-    result = EvaluateFormula(formula);
-}
-
-Console.WriteLine($"Your result: {result}");
-
-bool IsNumeric(string formula)
-{
-    int value;
-    return int.TryParse(formula, out value);
-}
-
-int EvaluateFormula(string formula)
+int Evaluate(string formula)
 {
     int result = 0;
-    int currentValue = 0;
-    char currentOperator = '+';
-    for (int i = 0; i < formula.Length; i++)
+
+    formula = formula.Replace(" ", "");
+
+    if (formula == "") { return 0; }
+
+    bool minus = formula.Contains('-');
+    bool plus = formula.Contains('+');
+    if (!(minus || plus)) { return int.Parse(formula); }
+
+    int indexOfOperator;
+    char op = '+';
+    do
     {
-        char c = formula[i];
-        if (char.IsDigit(c))
+        indexOfOperator = FindIndexOfNextOperator(formula);
+        if (indexOfOperator == -1)
         {
-            currentValue = currentValue * 10 + (c - '0');
+            //There is no operator in the formula
+            if (op == '+') { result += int.Parse(formula); }
+            else { result -= int.Parse(formula);}
         }
         else
         {
-            switch (currentOperator)
-            {
-                case '+':
-                    result += currentValue;
-                    break;
-                case '-':
-                    result -= currentValue;
-                    break;
-            }
-            currentValue = 0;
-            currentOperator = c;
+            string leftFormula = formula.Substring(0, indexOfOperator);
+            if (op == '+') { result += int.Parse(leftFormula); }
+            else { result -= int.Parse(leftFormula);}
+
+            op = formula[indexOfOperator];
+            formula = formula.Substring(indexOfOperator + 1);
+            
         }
-    }
-    switch (currentOperator)
-    {
-        case '+':
-            result += currentValue;
-            break;
-        case '-':
-            result -= currentValue;
-            break;
-    }
+    } while (indexOfOperator != -1);
+
     return result;
+}
+
+int FindIndexOfNextOperator(string formula)
+{
+    int indexOfPlus = formula.IndexOf('+');
+    int indexOfMinus = formula.IndexOf('-');
+    if (indexOfPlus == -1) { return indexOfMinus; }
+    if (indexOfMinus == -1) { return indexOfPlus; }
+    return Math.Min(indexOfPlus, indexOfMinus);
+
 }
